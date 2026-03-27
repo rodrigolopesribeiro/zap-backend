@@ -1,0 +1,716 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Zap Finder</title>
+  <style>
+    @import url("https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap");
+
+    :root {
+      --bg-1: #f2f7f8;
+      --bg-2: #c7e1dc;
+      --ink: #112d32;
+      --muted: #49696f;
+      --accent: #ea5b2c;
+      --accent-2: #0b8f77;
+      --card: #fefefe;
+      --shadow: 0 16px 50px rgba(16, 54, 56, 0.18);
+      --radius: 18px;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      font-family: "Space Grotesk", sans-serif;
+      color: var(--ink);
+      background:
+        radial-gradient(circle at 8% 10%, rgba(11, 143, 119, 0.14), transparent 36%),
+        radial-gradient(circle at 90% 15%, rgba(234, 91, 44, 0.18), transparent 34%),
+        linear-gradient(140deg, var(--bg-1), var(--bg-2));
+      padding: 24px;
+    }
+
+    .shell {
+      max-width: 1050px;
+      margin: 0 auto;
+      display: grid;
+      gap: 18px;
+      animation: fadeUp 480ms ease-out;
+    }
+
+    .hero {
+      background: linear-gradient(135deg, #13373d 0%, #0d595f 60%, #0f7f70 100%);
+      color: #f7fffe;
+      border-radius: var(--radius);
+      padding: 26px 24px;
+      box-shadow: var(--shadow);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .hero::after {
+      content: "";
+      position: absolute;
+      inset: auto -80px -100px auto;
+      width: 290px;
+      height: 290px;
+      background: rgba(234, 91, 44, 0.28);
+      border-radius: 50%;
+      filter: blur(4px);
+    }
+
+    h1 {
+      margin: 0;
+      font-size: clamp(1.6rem, 3vw, 2.35rem);
+      font-weight: 700;
+      letter-spacing: 0.2px;
+    }
+
+    .hero p {
+      margin: 10px 0 0;
+      color: #ddfbf5;
+      max-width: 720px;
+    }
+
+    .panel {
+      background: var(--card);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      padding: 22px;
+    }
+
+    form {
+      display: grid;
+      gap: 12px;
+    }
+
+    .grid-2 {
+      display: grid;
+      gap: 12px;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    label {
+      display: grid;
+      gap: 6px;
+      font-size: 0.92rem;
+      color: var(--muted);
+      font-weight: 600;
+    }
+
+    input, select {
+      border: 1.4px solid #c6d8d9;
+      border-radius: 12px;
+      padding: 12px 13px;
+      font-size: 0.95rem;
+      font-family: "Space Grotesk", sans-serif;
+      color: #0f3035;
+      outline: none;
+      background: #fff;
+      transition: border-color 180ms ease, box-shadow 180ms ease;
+    }
+
+    input:focus, select:focus {
+      border-color: var(--accent-2);
+      box-shadow: 0 0 0 3px rgba(11, 143, 119, 0.15);
+    }
+
+    .actions {
+      display: flex;
+      gap: 10px;
+      align-items: center;
+      flex-wrap: wrap;
+      margin-top: 2px;
+    }
+
+    button {
+      border: 0;
+      border-radius: 12px;
+      padding: 12px 18px;
+      font-weight: 700;
+      font-size: 0.95rem;
+      font-family: "Space Grotesk", sans-serif;
+      cursor: pointer;
+      color: white;
+      background: linear-gradient(135deg, var(--accent), #ff7b4f);
+      transition: transform 100ms ease, filter 100ms ease;
+    }
+
+    button:hover {
+      filter: brightness(1.03);
+    }
+
+    button:active {
+      transform: translateY(1px);
+    }
+
+    button[disabled] {
+      opacity: 0.7;
+      cursor: wait;
+    }
+
+    .hint {
+      font-family: "IBM Plex Mono", monospace;
+      font-size: 0.82rem;
+      color: #4e7177;
+    }
+
+    .result-card {
+      border: 1px solid #cee2de;
+      border-radius: 14px;
+      padding: 14px;
+      margin-top: 10px;
+      background: #fbfffe;
+      animation: fadeUp 240ms ease-out;
+    }
+
+    .status {
+      font-weight: 700;
+      margin: 0 0 6px;
+      color: #17454d;
+    }
+
+    .status.ok {
+      color: #0f7f48;
+    }
+
+    .status.fail {
+      color: #a0361d;
+    }
+
+    .mono {
+      font-family: "IBM Plex Mono", monospace;
+      font-size: 0.88rem;
+      color: #30555c;
+      word-break: break-word;
+    }
+
+    .match-list {
+      margin: 8px 0 0;
+      padding-left: 18px;
+    }
+
+    .match-list li {
+      margin: 5px 0;
+      font-family: "IBM Plex Mono", monospace;
+      font-size: 0.86rem;
+      color: #1f4c54;
+      word-break: break-word;
+    }
+
+    .match-meta {
+      margin: 3px 0 0;
+      font-family: "IBM Plex Mono", monospace;
+      font-size: 0.78rem;
+      color: #456a72;
+    }
+
+    .field-help {
+      font-size: 0.8rem;
+      color: #5b7f85;
+      font-family: "IBM Plex Mono", monospace;
+      font-weight: 400;
+    }
+
+    .grid-3 {
+      display: grid;
+      gap: 12px;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+
+    .logs {
+      margin-top: 10px;
+      max-height: 240px;
+      overflow: auto;
+      padding: 10px;
+      border-radius: 12px;
+      background: #0f2b30;
+      color: #c8f8f1;
+      font-family: "IBM Plex Mono", monospace;
+      font-size: 0.79rem;
+      line-height: 1.4;
+      white-space: pre-wrap;
+    }
+
+    @keyframes fadeUp {
+      from {
+        opacity: 0;
+        transform: translateY(8px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    @media (max-width: 780px) {
+      body {
+        padding: 16px;
+      }
+
+      .grid-2 {
+        grid-template-columns: 1fr;
+      }
+
+      .grid-3 {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+<body>
+  <main class="shell">
+    <section class="hero">
+      <h1>Busca de endereco exato no Zap</h1>
+      <p>Informe a URL da listagem e busque por endereco, por condominio, ou pelos dois no modo OU.</p>
+    </section>
+
+    <section class="panel">
+      <form id="search-form">
+        <label>
+          URL da listagem
+          <input id="url" name="url" type="url" value="{{ default_url }}" required>
+        </label>
+
+        <div class="grid-2">
+          <label>
+            Endereco (parcial)
+            <input id="address" name="address" type="text" value="{{ default_address }}">
+            <span class="field-help">Ex.: "Avenida Lucio Costa, 3604". Nao precisa digitar o endereco completo.</span>
+          </label>
+          <label>
+            Condominio
+            <input id="condominium" name="condominium" type="text" placeholder="ex.: Barra Summer Dream">
+            <span class="field-help">O match procura o nome do condominio como termo completo (evita listas).</span>
+          </label>
+        </div>
+        <span class="field-help">Voce pode buscar por endereco, por condominio, por dias recentes, ou combinar.</span>
+
+        <div class="grid-2">
+          <label>
+            Headless
+            <select id="headless" name="headless">
+              <option value="false" selected>false</option>
+              <option value="true">true</option>
+            </select>
+            <span class="field-help">Recomendado: false para reduzir bloqueio anti-bot.</span>
+          </label>
+          <label>
+            Criado nos ultimos (dias)
+            <input
+              id="recent_days"
+              name="recent_days"
+              type="number"
+              min="0"
+              max="30"
+              step="1"
+              inputmode="numeric"
+              pattern="\d{1,2}"
+              maxlength="2"
+              placeholder="ex.: 2"
+            >
+            <span class="field-help">0 = somente anuncios de hoje. 2 = de hoje ate 2 dias atras.</span>
+          </label>
+        </div>
+        <span class="field-help">
+          A busca analisa automaticamente ate 2 paginas por lote para reduzir risco de bloqueio no Zap Imoveis.
+        </span>
+
+        <div class="grid-2">
+          <label>
+            Timeout (ms)
+            <input id="timeout" name="timeout" type="number" min="1000" value="30000">
+          </label>
+          <label>
+            Pagina inicial
+            <input id="start_page" name="start_page" type="number" min="1" value="1">
+            <span class="field-help">Use 1 para comecar do inicio. Se quiser retomar, informe a pagina desejada.</span>
+          </label>
+        </div>
+
+        <div class="grid-2">
+          <label>
+            Modo de execucao
+            <select id="loop_mode" name="loop_mode">
+              <option value="loop" selected>Rodar em lotes ate o fim</option>
+              <option value="single">Apenas 1 lote (2 paginas)</option>
+            </select>
+            <span class="field-help">Em lotes: executa automaticamente 2 paginas por vez ate o fim.</span>
+          </label>
+          <label>
+            Acao
+            <div class="actions">
+              <button id="submit-btn" type="submit">Buscar agora</button>
+              <button id="cancel-btn" type="button" style="background:linear-gradient(135deg,#4b5c60,#1c2b2e);display:none;">Parar</button>
+              <span class="hint">Execucao em lotes diretamente no backend</span>
+            </div>
+          </label>
+        </div>
+      </form>
+    </section>
+
+    <section class="panel">
+      <h2 style="margin:0 0 8px;font-size:1.15rem;">Resultado</h2>
+      <div id="result"></div>
+    </section>
+  </main>
+
+  <script>
+    const form = document.getElementById("search-form");
+    const resultEl = document.getElementById("result");
+    const submitBtn = document.getElementById("submit-btn");
+    const recentDaysInput = document.getElementById("recent_days");
+    const BACKEND_URL = "/api/search";
+    const cancelBtn = document.getElementById("cancel-btn");
+    let cancelRequested = false;
+
+    function sanitizeRecentDaysInput() {
+      let digits = String(recentDaysInput.value || "").replace(/\D/g, "");
+      if (digits.length > 2) {
+        digits = digits.slice(0, 2);
+      }
+      if (digits !== "" && Number(digits) > 30) {
+        digits = "30";
+      }
+      recentDaysInput.value = digits;
+    }
+
+    recentDaysInput.addEventListener("input", sanitizeRecentDaysInput);
+
+    function escapeHtml(text) {
+      return String(text)
+        .replaceAll("&", "&amp;")
+        .replaceAll("<", "&lt;")
+        .replaceAll(">", "&gt;")
+        .replaceAll('"', "&quot;")
+        .replaceAll("'", "&#039;");
+    }
+
+    function renderLoading() {
+      resultEl.innerHTML = `
+        <div class="result-card">
+          <p class="status">Executando busca...</p>
+          <p class="mono">Enviando requisicao para o backend.</p>
+        </div>
+      `;
+    }
+
+    function renderBatchStatus(batchIndex, startPage, message) {
+      resultEl.innerHTML = `
+        <div class="result-card">
+          <p class="status">Lote ${batchIndex}</p>
+          <p class="mono">Pagina inicial do lote: ${startPage}</p>
+          <p class="mono">${escapeHtml(message || "Executando..." )}</p>
+        </div>
+      `;
+    }
+
+    function renderLoopSummary(summary) {
+      const logsBlock = summary.logs ? `<div class="logs">${escapeHtml(summary.logs)}</div>` : "";
+      const matchesBlock = summary.matches.length
+        ? `
+          <p class="mono">Matches encontrados: ${summary.matches.length}</p>
+          <ol class="match-list">
+            ${summary.matches.map((item) => `
+              <li>
+                <a href="${escapeHtml(item.property_url || "")}" target="_blank" rel="noopener noreferrer">${escapeHtml(item.property_url || "")}</a>
+                <p class="match-meta">listing_id: ${escapeHtml(item.listing_id || "-")}</p>
+                <p class="match-meta">endereco: ${escapeHtml(item.address_extracted || "nao informado")}</p>
+                <p class="match-meta">address_match: ${escapeHtml(String(item.address_match ?? false))}</p>
+                <p class="match-meta">condominium_match: ${escapeHtml(String(item.condominium_match ?? false))}</p>
+              </li>
+            `).join("")}
+          </ol>
+        `
+        : `<p class="mono">Nenhum match encontrado nos lotes.</p>`;
+
+      resultEl.innerHTML = `
+        <div class="result-card">
+          <p class="status ok">Execucao concluida</p>
+          <p class="mono">Lotes executados: ${summary.batches}</p>
+          <p class="mono">Paginas processadas: ${summary.pagesProcessed}</p>
+          <p class="mono">Imoveis visitados: ${summary.visited}</p>
+          ${matchesBlock}
+          ${logsBlock}
+        </div>
+      `;
+    }
+
+    function renderResponse(data) {
+      const status = String(data?.status || "desconhecido");
+      const logs = Array.isArray(data?.logs) ? data.logs.join("\n") : "";
+      const logsBlock = logs ? `<div class="logs">${escapeHtml(logs)}</div>` : "";
+
+      if (status === "accepted") {
+        const message = data?.message || "Busca enviada para processamento.";
+        const runId = data?.search_run_id || data?.run_id || data?.execution_id || "";
+        const runBlock = runId
+          ? `<p class="mono">search_run_id: ${escapeHtml(runId)}</p>`
+          : "";
+        resultEl.innerHTML = `
+          <div class="result-card">
+            <p class="status ok">Status: ${escapeHtml(status)}</p>
+            <p class="mono">${escapeHtml(message)}</p>
+            ${runBlock}
+            <p class="mono">A consulta foi iniciada e esta sendo processada em lotes.</p>
+            ${logsBlock}
+          </div>
+        `;
+        return;
+      }
+
+      if (status === "error") {
+        const errMsg = data?.error_message || data?.error || data?.message || "Erro ao iniciar a busca.";
+        resultEl.innerHTML = `
+          <div class="result-card">
+            <p class="status fail">Status: ${escapeHtml(status)}</p>
+            <p class="mono">${escapeHtml(errMsg)}</p>
+            ${logsBlock}
+          </div>
+        `;
+        return;
+      }
+
+      const isFound = status === "encontrado";
+      const statusClass = isFound ? "status ok" : "status fail";
+      const urls = Array.isArray(data.urls) ? data.urls : [];
+      const matchDetails = Array.isArray(data.matches_detail) ? data.matches_detail : [];
+      const matches = Array.isArray(data.matches) ? data.matches : [];
+
+      let detailsBlock = "";
+      if (matchDetails.length > 0) {
+        detailsBlock = `
+          <p class="mono">Detalhes dos matches:</p>
+          <ol class="match-list">
+            ${matchDetails.map((item) => `
+              <li>
+                <a href="${escapeHtml(item.url || "")}" target="_blank" rel="noopener noreferrer">${escapeHtml(item.url || "")}</a>
+                <p class="match-meta">created_date: ${escapeHtml(item.created_date || "desconhecida")}</p>
+                <p class="match-meta">endereco: ${escapeHtml(item.endereco_extraido || "nao informado")}</p>
+                <p class="match-meta">address_matched: ${escapeHtml(String(item.address_matched ?? false))}</p>
+                <p class="match-meta">condominium_matched: ${escapeHtml(String(item.condominium_matched ?? false))}</p>
+                <p class="match-meta">condominium_fragment: ${escapeHtml(item.condominium_fragment || "-")}</p>
+              </li>
+            `).join("")}
+          </ol>
+        `;
+      } else if (matches.length > 0) {
+        detailsBlock = `
+          <p class="mono">Detalhes dos matches:</p>
+          <ol class="match-list">
+            ${matches.map((item) => `
+              <li>
+                <a href="${escapeHtml(item.property_url || "")}" target="_blank" rel="noopener noreferrer">${escapeHtml(item.property_url || "")}</a>
+                <p class="match-meta">listing_id: ${escapeHtml(item.listing_id || "-")}</p>
+                <p class="match-meta">endereco: ${escapeHtml(item.address_extracted || "nao informado")}</p>
+                <p class="match-meta">address_match: ${escapeHtml(String(item.address_match ?? false))}</p>
+                <p class="match-meta">condominium_match: ${escapeHtml(String(item.condominium_match ?? false))}</p>
+              </li>
+            `).join("")}
+          </ol>
+        `;
+      } else if (isFound && urls.length > 0) {
+        detailsBlock = `
+          <p class="mono">URLs encontradas: ${urls.length}</p>
+          <ol class="match-list">
+            ${urls.map((url) => `<li><a href="${escapeHtml(url)}" target="_blank" rel="noopener noreferrer">${escapeHtml(url)}</a></li>`).join("")}
+          </ol>
+        `;
+      } else {
+        detailsBlock = `<p class="mono">Nenhum anuncio com match exato foi encontrado.</p>`;
+      }
+
+      const windowLine = data.recent_days_applied && data.date_window
+        ? `<p class="mono">Janela de datas: de ${escapeHtml(data.date_window.from || "-")} ate ${escapeHtml(data.date_window.to || "-")}</p>`
+        : "";
+
+      const totalMatches = data.total_matches ?? data.matches_count ?? urls.length ?? "-";
+      const pagesProcessed = data.pages_processed ?? data.pages_scanned ?? "-";
+      const extra = `
+        <p class="mono">Total de matches: ${totalMatches}</p>
+        ${windowLine}
+        <p class="mono">Paginas varridas: ${pagesProcessed}</p>
+        <p class="mono">Imoveis visitados: ${data.visited_properties ?? "-"}</p>
+        <p class="mono">Tempo total: ${data.elapsed_seconds ?? "-"}s</p>
+      `;
+
+      const errBlock = data.error
+        ? `<p class="mono" style="color:#a0361d;">Erro: ${escapeHtml(data.error)}</p>`
+        : "";
+
+      const fallbackLogsBlock = logsBlock || `<div class="logs">Sem logs adicionais.</div>`;
+
+      resultEl.innerHTML = `
+        <div class="result-card">
+          <p class="${statusClass}">Status: ${escapeHtml(status)}</p>
+          ${detailsBlock}
+          ${extra}
+          ${errBlock}
+          ${fallbackLogsBlock}
+        </div>
+      `;
+    }
+
+    function renderError(message) {
+      resultEl.innerHTML = `
+        <div class="result-card">
+          <p class="status fail">Falha na requisicao</p>
+          <p class="mono">${escapeHtml(message)}</p>
+        </div>
+      `;
+    }
+
+    form.addEventListener("submit", async (event) => {
+      event.preventDefault();
+      submitBtn.disabled = true;
+      cancelBtn.style.display = "inline-flex";
+      cancelBtn.disabled = false;
+      cancelRequested = false;
+      renderLoading();
+
+      const recentDaysValue = String(recentDaysInput.value || "").trim();
+      const addressValue = String(document.getElementById("address").value || "").trim();
+      const condominiumValue = String(document.getElementById("condominium").value || "").trim();
+
+      if (!addressValue && !condominiumValue && recentDaysValue === "") {
+        renderError("Preencha ao menos um criterio: endereco (parcial), condominio ou criado nos ultimos (dias).");
+        submitBtn.disabled = false;
+        return;
+      }
+
+      if (recentDaysValue !== "") {
+        if (!/^\d{1,2}$/.test(recentDaysValue)) {
+          renderError("recent_days deve ter no maximo 2 digitos inteiros.");
+          submitBtn.disabled = false;
+          return;
+        }
+        const recentNumber = Number(recentDaysValue);
+        if (!Number.isInteger(recentNumber) || recentNumber < 0 || recentNumber > 30) {
+          renderError("recent_days deve ser um inteiro entre 0 e 30.");
+          submitBtn.disabled = false;
+          return;
+        }
+      }
+
+      const payload = {
+        listing_url: document.getElementById("url").value,
+        address: addressValue,
+        condominium: condominiumValue,
+        headless: document.getElementById("headless").value,
+        recent_days: recentDaysValue,
+        timeout: document.getElementById("timeout").value,
+        start_page: document.getElementById("start_page").value,
+      };
+
+      try {
+        const loopMode = document.getElementById("loop_mode").value;
+        if (loopMode === "single") {
+          const response = await fetch(BACKEND_URL, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(payload),
+          });
+          let data = {};
+          try {
+            data = await response.json();
+          } catch (parseError) {
+            data = {};
+          }
+          if (!response.ok) {
+            const message = data.error_message || data.error || data.message || `HTTP ${response.status}`;
+            throw new Error(message);
+          }
+          renderResponse(data);
+        } else {
+          let nextPage = Number(payload.start_page || 1);
+          let batchIndex = 0;
+          let totalPages = 0;
+          let totalVisited = 0;
+          const matchMap = new Map();
+          const allLogs = [];
+
+          while (!cancelRequested) {
+            batchIndex += 1;
+            renderBatchStatus(batchIndex, nextPage, "Executando lote...");
+
+            const batchPayload = { ...payload, start_page: nextPage };
+            const response = await fetch(BACKEND_URL, {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify(batchPayload),
+            });
+            let data = {};
+            try {
+              data = await response.json();
+            } catch (parseError) {
+              data = {};
+            }
+            if (!response.ok || data.status === "error") {
+              const message = data.error_message || data.error || data.message || `HTTP ${response.status}`;
+              throw new Error(message);
+            }
+
+            totalPages += Number(data.pages_processed || data.pages_scanned || 0);
+            totalVisited += Number(data.visited_properties || 0);
+            if (Array.isArray(data.logs)) {
+              allLogs.push(`----- lote ${batchIndex} -----`);
+              allLogs.push(...data.logs);
+            }
+
+            if (Array.isArray(data.matches)) {
+              data.matches.forEach((item) => {
+                const key = item.listing_id || item.property_url;
+                if (!key) return;
+                if (!matchMap.has(key)) {
+                  matchMap.set(key, item);
+                }
+              });
+            }
+
+            if (!data.has_more_pages || !data.next_start_page) {
+              break;
+            }
+
+            nextPage = Number(data.next_start_page);
+
+            const waitSeconds = Math.floor(Math.random() * (90 - 45 + 1)) + 45;
+            renderBatchStatus(batchIndex, nextPage, `Aguardando ${waitSeconds}s para o proximo lote...`);
+            for (let i = 0; i < waitSeconds; i += 1) {
+              if (cancelRequested) break;
+              await new Promise((resolve) => setTimeout(resolve, 1000));
+            }
+          }
+
+          if (cancelRequested) {
+            renderError("Execucao interrompida pelo usuario.");
+          } else {
+            renderLoopSummary({
+              batches: batchIndex,
+              pagesProcessed: totalPages,
+              visited: totalVisited,
+              matches: Array.from(matchMap.values()),
+              logs: allLogs.join("\n"),
+            });
+          }
+        }
+      } catch (error) {
+        renderError(error.message || String(error));
+      } finally {
+        submitBtn.disabled = false;
+        cancelBtn.disabled = true;
+        cancelBtn.style.display = "none";
+      }
+    });
+
+    cancelBtn.addEventListener("click", () => {
+      cancelRequested = true;
+      cancelBtn.disabled = true;
+    });
+  </script>
+</body>
+</html>

@@ -1,0 +1,32 @@
+﻿# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+*.egg-info/
+.venv/
+venv/
+.env
+.env.*
+
+# Logs / outputs
+*.log
+logs.txt
+output/
+
+# OS / IDE
+.DS_Store
+Thumbs.db
+.vscode/
+
+# Keys / secrets
+*.pem
+*.key
+*.p12
+*.pfx
+keys/
+.ssh/
+
+# Local-only tools
+ngrok/
+
